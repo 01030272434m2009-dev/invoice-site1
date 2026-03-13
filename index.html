@@ -38,27 +38,31 @@ function loadInvoiceData() {
     if (!dataParam) return;
 
     const jsonStr = decodeURIComponent(dataParam);
-    const invoiceData = JSON.parse(atob(jsonStr));
+    const invoices = JSON.parse(atob(jsonStr)); // مصفوفة من الفواتير
 
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = "";
 
-    if (Array.isArray(invoiceData.items)) {
-        invoiceData.items.forEach(item => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-            <td>${invoiceData.invoiceNo || "-"}</td>
-            <td>${invoiceData.customer}</td>
-            <td>${invoiceData.phone}</td>
-            <td>${invoiceData.payment}</td>
-            <td>${invoiceData.total}</td>
-            <td>${invoiceData.payment}</td>
-            <td>${invoiceData.date}</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
+    invoices.forEach(inv => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>${inv.invoiceNo || "-"}</td>
+        <td>${inv.customer}</td>
+        <td>${inv.phone}</td>
+        <td>${inv.priceMode || "-"}</td>
+        <td>${inv.total}</td>
+        <td>${inv.payment}</td>
+        <td>${inv.date}</td>
+        `;
+        tbody.appendChild(row);
+    });
 }
+
+// استدعاء الدالة عند تحميل الصفحة
+window.onload = loadInvoiceData;
+</script>
+</body>
+</html>
 loadInvoiceData();
 </script>
 </body>
