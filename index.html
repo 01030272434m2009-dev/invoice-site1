@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل الفواتير</title>
+<style>
+body { font-family: Tahoma, sans-serif; background-color: #f5f5f5; margin: 0; }
+header { background-color: #2196F3; color: white; padding: 15px; text-align: center; font-size: 24px; }
+table { width: 95%; margin: 20px auto; border-collapse: collapse; background-color: white; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+th { background-color: #2196F3; color: white; }
+</style>
+</head>
+<body>
+<header>📒 سجل الفواتير</header>
+<table id="invoiceTable">
+<thead>
+<tr>
+<th>رقم الفاتورة</th>
+<th>العميل</th>
+<th>الهاتف</th>
+<th>نوع البيع</th>
+<th>الإجمالي</th>
+<th>طريقة الدفع</th>
+<th>التاريخ</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+// استدعاء البيانات من رابط
+function loadInvoiceData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataParam = urlParams.get('data');
+
+    if (!dataParam) return;
+
+    const jsonStr = decodeURIComponent(dataParam);
+    const invoiceData = JSON.parse(atob(jsonStr));
+
+    const tbody = document.querySelector("#invoiceTable tbody");
+    tbody.innerHTML = "";
+
+    if (Array.isArray(invoiceData.items)) {
+        invoiceData.items.forEach(item => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+            <td>${invoiceData.invoiceNo || "-"}</td>
+            <td>${invoiceData.customer}</td>
+            <td>${invoiceData.phone}</td>
+            <td>${invoiceData.payment}</td>
+            <td>${invoiceData.total}</td>
+            <td>${invoiceData.payment}</td>
+            <td>${invoiceData.date}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+}
+loadInvoiceData();
+</script>
+</body>
+</html>
