@@ -10,6 +10,7 @@ header { background-color: #2196F3; color: white; padding: 15px; text-align: cen
 table { width: 95%; margin: 20px auto; border-collapse: collapse; background-color: white; }
 th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
 th { background-color: #2196F3; color: white; }
+tr:nth-child(even) { background-color: #f9f9f9; }
 </style>
 </head>
 <body>
@@ -30,40 +31,52 @@ th { background-color: #2196F3; color: white; }
 </table>
 
 <script>
-// استدعاء البيانات من رابط
+// استدعاء البيانات من رابط URL
 function loadInvoiceData() {
     const urlParams = new URLSearchParams(window.location.search);
     const dataParam = urlParams.get('data');
 
-    if (!dataParam) return;
+    if (!dataParam) {
+        const tbody = document.querySelector("#invoiceTable tbody");
+        tbody.innerHTML = "<tr><td colspan='7'>لا توجد بيانات لعرضها</td></tr>";
+        return;
+    }
 
-    const jsonStr = decodeURIComponent(dataParam);
-    const invoices = JSON.parse(atob(jsonStr)); // مصفوفة من الفواتير
+    try {
+        const jsonStr = decodeURIComponent(dataParam);
+        const invoices = JSON.parse(atob(jsonStr)); // تحويل Base64 الى JSON
 
-    const tbody = document.querySelector("#invoiceTable tbody");
-    tbody.innerHTML = "";
+        const tbody = document.querySelector("#invoiceTable tbody");
+        tbody.innerHTML = "";
 
-    invoices.forEach(inv => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-        <td>${inv.invoiceNo || "-"}</td>
-        <td>${inv.customer}</td>
-        <td>${inv.phone}</td>
-        <td>${inv.priceMode || "-"}</td>
-        <td>${inv.total}</td>
-        <td>${inv.payment}</td>
-        <td>${inv.date}</td>
-        `;
-        tbody.appendChild(row);
-    });
+        if (invoices.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='7'>لا توجد فواتير</td></tr>";
+            return;
+        }
+
+        invoices.forEach(inv => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${inv.invoiceNo || "-"}</td>
+                <td>${inv.customer || "-"}</td>
+                <td>${inv.phone || "-"}</td>
+                <td>${inv.priceMode || "-"}</td>
+                <td>${inv.total || "0.00"}</td>
+                <td>${inv.payment || "-"}</td>
+                <td>${inv.date || "-"}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
+    } catch (err) {
+        console.error("حدث خطأ عند تحميل البيانات:", err);
+        const tbody = document.querySelector("#invoiceTable tbody");
+        tbody.innerHTML = "<tr><td colspan='7'>حدث خطأ في تحميل البيانات</td></tr>";
+    }
 }
 
 // استدعاء الدالة عند تحميل الصفحة
 window.onload = loadInvoiceData;
-</script>
-</body>
-</html>
-loadInvoiceData();
 </script>
 </body>
 </html>
