@@ -4,22 +4,69 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>سجل الفواتير</title>
+
 <style>
-body { font-family: Tahoma, sans-serif; background-color: #f5f5f5; margin: 0; }
-header { background-color: #2196F3; color: white; padding: 15px; text-align: center; font-size: 24px; }
-table { width: 95%; margin: 20px auto; border-collapse: collapse; background-color: white; }
-th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-th { background-color: #2196F3; color: white; }
-tr:nth-child(even) { background-color: #f9f9f9; }
-#searchBox { display: block; width: 95%; margin: 10px auto; padding: 8px; font-size: 16px; }
+body{
+font-family:Tahoma,sans-serif;
+background:#f5f5f5;
+margin:0;
+}
+
+header{
+background:#2196F3;
+color:white;
+padding:15px;
+text-align:center;
+font-size:24px;
+}
+
+#searchBox{
+display:block;
+width:95%;
+margin:10px auto;
+padding:10px;
+font-size:16px;
+border:1px solid #ccc;
+border-radius:4px;
+}
+
+table{
+width:95%;
+margin:20px auto;
+border-collapse:collapse;
+background:white;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+th,td{
+border:1px solid #ddd;
+padding:10px;
+text-align:center;
+}
+
+th{
+background:#2196F3;
+color:white;
+}
+
+tr:nth-child(even){
+background:#f9f9f9;
+}
+
+tr:hover{
+background:#eef6ff;
+}
 </style>
 </head>
+
 <body>
+
 <header>📒 سجل الفواتير</header>
 
 <input type="text" id="searchBox" placeholder="ابحث بالعميل أو رقم الفاتورة">
 
 <table id="invoiceTable">
+
 <thead>
 <tr>
 <th>رقم الفاتورة</th>
@@ -31,79 +78,100 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 <th>التاريخ</th>
 </tr>
 </thead>
+
 <tbody></tbody>
+
 </table>
 
 <script>
-// دالة فك Base64 ودعم UTF-8 للحروف العربية
-function b64DecodeUnicode(str) {
-    return decodeURIComponent(Array.prototype.map.call(atob(str), c => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+
+let invoices=[]
+
+// تحميل الفواتير من ملف JSON
+async function loadInvoiceData(){
+
+try{
+
+const response=await fetch("invoices.json")
+
+if(!response.ok)
+throw new Error("فشل تحميل البيانات")
+
+invoices=await response.json()
+
+if(!Array.isArray(invoices)||invoices.length===0){
+showEmpty("لا توجد فواتير")
+return
 }
 
-let invoices = []; // مصفوفة لتخزين الفواتير
+renderTable(invoices)
 
-function loadInvoiceData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const dataParam = urlParams.get('data');
+}catch(err){
 
-    const tbody = document.querySelector("#invoiceTable tbody");
-    tbody.innerHTML = "";
+console.error(err)
 
-    if (!dataParam) {
-        tbody.innerHTML = "<tr><td colspan='7'>لا توجد بيانات لعرضها</td></tr>";
-        return;
-    }
+showEmpty("حدث خطأ في تحميل البيانات")
 
-    try {
-        const jsonStr = b64DecodeUnicode(dataParam);
-        invoices = JSON.parse(jsonStr);
-
-        if (!Array.isArray(invoices) || invoices.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='7'>لا توجد فواتير</td></tr>";
-            return;
-        }
-
-        renderTable(invoices);
-    } catch (err) {
-        console.error("حدث خطأ عند تحميل البيانات:", err);
-        tbody.innerHTML = "<tr><td colspan='7'>حدث خطأ في تحميل البيانات</td></tr>";
-    }
 }
 
-// دالة لإعادة رسم الجدول مع فلترة
-function renderTable(data) {
-    const tbody = document.querySelector("#invoiceTable tbody");
-    tbody.innerHTML = "";
-
-    data.forEach(inv => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${inv.invoiceNo || "-"}</td>
-            <td>${inv.customer || "-"}</td>
-            <td>${inv.phone || "-"}</td>
-            <td>${inv.priceMode || "-"}</td>
-            <td>${inv.total || "0.00"}</td>
-            <td>${inv.payment || "-"}</td>
-            <td>${inv.date || "-"}</td>
-        `;
-        tbody.appendChild(row);
-    });
 }
 
-// فلترة حسب العميل أو رقم الفاتورة
-document.getElementById("searchBox").addEventListener("input", function() {
-    const query = this.value.trim().toLowerCase();
-    const filtered = invoices.filter(inv =>
-        (inv.customer && inv.customer.toLowerCase().includes(query)) ||
-        (inv.invoiceNo && inv.invoiceNo.toLowerCase().includes(query))
-    );
-    renderTable(filtered);
-});
+// رسم الجدول
+function renderTable(data){
 
-// استدعاء الدالة عند تحميل الصفحة
-window.onload = loadInvoiceData;
+const tbody=document.querySelector("#invoiceTable tbody")
+
+tbody.innerHTML=""
+
+data.forEach(inv=>{
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+<td>${inv.invoiceNo||"-"}</td>
+<td>${inv.customer||"-"}</td>
+<td>${inv.phone||"-"}</td>
+<td>${inv.priceMode||"-"}</td>
+<td>${inv.total||"0.00"}</td>
+<td>${inv.payment||"-"}</td>
+<td>${inv.date||"-"}</td>
+`
+
+tbody.appendChild(row)
+
+})
+
+}
+
+// في حالة عدم وجود بيانات
+function showEmpty(msg){
+
+const tbody=document.querySelector("#invoiceTable tbody")
+
+tbody.innerHTML=`<tr><td colspan="7">${msg}</td></tr>`
+
+}
+
+// البحث
+document.getElementById("searchBox").addEventListener("input",function(){
+
+const q=this.value.toLowerCase()
+
+const filtered=invoices.filter(inv=>
+
+(inv.customer && inv.customer.toLowerCase().includes(q)) ||
+(inv.invoiceNo && inv.invoiceNo.toLowerCase().includes(q))
+
+)
+
+renderTable(filtered)
+
+})
+
+// تحميل الصفحة
+window.onload=loadInvoiceData
+
 </script>
+
 </body>
 </html>
