@@ -4,54 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>سجل الفواتير</title>
-
 <style>
-body{
-    font-family:Tahoma,sans-serif;
-    background:#f5f5f5;
-    margin:0;
-}
-header{
-    background:#2196F3;
-    color:white;
-    padding:15px;
-    text-align:center;
-    font-size:24px;
-}
-#searchBox{
-    display:block;
-    width:95%;
-    margin:10px auto;
-    padding:10px;
-    font-size:16px;
-    border:1px solid #ccc;
-    border-radius:4px;
-}
-table{
-    width:95%;
-    margin:20px auto;
-    border-collapse:collapse;
-    background:white;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-th,td{
-    border:1px solid #ddd;
-    padding:10px;
-    text-align:center;
-}
-th{
-    background:#2196F3;
-    color:white;
-}
-tr:nth-child(even){
-    background:#f9f9f9;
-}
-tr:hover{
-    background:#eef6ff;
-}
+body{font-family:Tahoma,sans-serif;background:#f5f5f5;margin:0;}
+header{background:#2196F3;color:white;padding:15px;text-align:center;font-size:24px;}
+#searchBox{display:block;width:95%;margin:10px auto;padding:10px;font-size:16px;border:1px solid #ccc;border-radius:4px;}
+table{width:95%;margin:20px auto;border-collapse:collapse;background:white;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+th,td{border:1px solid #ddd;padding:10px;text-align:center;}
+th{background:#2196F3;color:white;}
+tr:nth-child(even){background:#f9f9f9;}
+tr:hover{background:#eef6ff;}
 </style>
 </head>
-
 <body>
 
 <header>📒 سجل الفواتير</header>
@@ -73,58 +36,56 @@ tr:hover{
 <tbody></tbody>
 </table>
 
+<!-- مكتبة pako لفك GZip -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+
 <script>
-// مصفوفة لتخزين الفواتير
-let invoices = []
+let invoices=[];
 
 // دالة لفك Base64 + GZip
-async function decompressBase64Gzip(base64Str) {
-    const raw = atob(base64Str)
-    const buf = new Uint8Array(raw.length)
-    for(let i=0;i<raw.length;i++) buf[i]=raw.charCodeAt(i)
-    const decompressed = await new Response(new Blob([buf])).arrayBuffer()
-    const ds = new DecompressionStream("gzip")
-    const decompressedStream = buf.stream().pipeThrough(ds)
-    const text = await new Response(decompressedStream).text()
-    return text
+function decompressBase64Gzip(base64Str){
+    const binary = atob(base64Str);
+    const buffer = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) buffer[i]=binary.charCodeAt(i);
+    const decompressed = pako.ungzip(buffer, { to: 'string' });
+    return decompressed;
 }
 
 // تحميل البيانات من الرابط
-async function loadInvoiceData() {
-    const params = new URLSearchParams(window.location.search)
-    const dataParam = params.get("data")
-    const tbody = document.querySelector("#invoiceTable tbody")
-    tbody.innerHTML = ""
+function loadInvoiceData(){
+    const params = new URLSearchParams(window.location.search);
+    const dataParam = params.get("data");
+    const tbody = document.querySelector("#invoiceTable tbody");
+    tbody.innerHTML="";
 
-    if (!dataParam) {
-        showEmpty("لا توجد بيانات لعرضها")
-        return
+    if(!dataParam){
+        showEmpty("لا توجد بيانات لعرضها");
+        return;
     }
 
-    try {
-        // فك الرابط Base64 + GZip
-        const jsonStr = await decompressBase64Gzip(decodeURIComponent(dataParam))
-        invoices = JSON.parse(jsonStr)
+    try{
+        const jsonStr = decompressBase64Gzip(decodeURIComponent(dataParam));
+        invoices = JSON.parse(jsonStr);
 
-        if (!Array.isArray(invoices) || invoices.length === 0) {
-            showEmpty("لا توجد فواتير")
-            return
+        if(!Array.isArray(invoices)||invoices.length===0){
+            showEmpty("لا توجد فواتير");
+            return;
         }
 
-        renderTable(invoices)
-    } catch (err) {
-        console.error(err)
-        showEmpty("حدث خطأ في تحميل البيانات")
+        renderTable(invoices);
+    }catch(err){
+        console.error(err);
+        showEmpty("حدث خطأ في تحميل البيانات");
     }
 }
 
 // رسم الجدول
 function renderTable(data){
-    const tbody = document.querySelector("#invoiceTable tbody")
-    tbody.innerHTML = ""
+    const tbody=document.querySelector("#invoiceTable tbody");
+    tbody.innerHTML="";
     data.forEach(inv=>{
-        const row = document.createElement("tr")
-        row.innerHTML = `
+        const row=document.createElement("tr");
+        row.innerHTML=`
             <td>${inv.invoiceNo||"-"}</td>
             <td>${inv.customer||"-"}</td>
             <td>${inv.phone||"-"}</td>
@@ -132,29 +93,28 @@ function renderTable(data){
             <td>${inv.total||"0.00"}</td>
             <td>${inv.payment||"-"}</td>
             <td>${inv.date||"-"}</td>
-        `
-        tbody.appendChild(row)
-    })
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 // عرض رسالة عند عدم وجود بيانات
 function showEmpty(msg){
-    const tbody = document.querySelector("#invoiceTable tbody")
-    tbody.innerHTML=`<tr><td colspan="7">${msg}</td></tr>`
+    const tbody=document.querySelector("#invoiceTable tbody");
+    tbody.innerHTML=`<tr><td colspan="7">${msg}</td></tr>`;
 }
 
 // البحث
 document.getElementById("searchBox").addEventListener("input", function(){
-    const q = this.value.toLowerCase()
-    const filtered = invoices.filter(inv=>
+    const q=this.value.toLowerCase();
+    const filtered=invoices.filter(inv=>
         (inv.customer && inv.customer.toLowerCase().includes(q)) ||
         (inv.invoiceNo && inv.invoiceNo.toLowerCase().includes(q))
-    )
-    renderTable(filtered)
-})
+    );
+    renderTable(filtered);
+});
 
-// استدعاء عند تحميل الصفحة
-window.onload = loadInvoiceData
+window.onload = loadInvoiceData;
 </script>
 
 </body>
