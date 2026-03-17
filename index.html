@@ -13,11 +13,41 @@ th,td{border:1px solid #ddd;padding:10px;text-align:center;}
 th{background:#2196F3;color:white;}
 tr:nth-child(even){background:#f9f9f9;}
 tr:hover{background:#eef6ff;cursor:pointer;}
-.detailsTable{width:90%;margin:10px auto 30px auto;border-collapse:collapse;}
+
+/* نافذة منبثقة */
+#modalOverlay{
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.5);
+    z-index:1000;
+}
+#modalContent{
+    background:white;
+    width:90%;
+    max-width:700px;
+    margin:50px auto;
+    padding:20px;
+    border-radius:6px;
+    position:relative;
+    max-height:80%;
+    overflow-y:auto;
+}
+#closeModal{
+    position:absolute;
+    top:10px;
+    right:15px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    color:#333;
+}
+.detailsTable{width:100%;border-collapse:collapse;margin-top:10px;}
 .detailsTable th, .detailsTable td{border:1px solid #ccc;padding:8px;text-align:center;}
 .detailsTable th{background:#2196F3;color:white;}
 .detailsTable tr:nth-child(even){background:#f0f0f0;}
-.detailsHeader{width:95%;margin:10px auto;font-weight:bold;color:#333;}
+.detailsHeader{font-weight:bold;color:#333;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -39,7 +69,13 @@ tr:hover{background:#eef6ff;cursor:pointer;}
 <tbody></tbody>
 </table>
 
-<div id="invoiceDetails"></div>
+<!-- نافذة منبثقة لتفاصيل الفاتورة -->
+<div id="modalOverlay">
+    <div id="modalContent">
+        <span id="closeModal">&times;</span>
+        <div id="modalBody"></div>
+    </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <script>
@@ -97,12 +133,12 @@ function renderTable(data){
         <td>${inv.payment||"-"}</td>
         <td>${inv.date||"-"}</td>
         `;
-        row.addEventListener('click',()=>showDetails(inv));
+        row.addEventListener('click',()=>showModal(inv));
         tbody.appendChild(row);
     });
 }
 
-// عرض رسالة عند عدم وجود بيانات
+// رسالة عند عدم وجود بيانات
 function showEmpty(msg){
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = `<tr><td colspan="7">${msg}</td></tr>`;
@@ -116,42 +152,56 @@ document.getElementById("searchBox").addEventListener("input", function(){
         (inv.invoiceNo && inv.invoiceNo.toLowerCase().includes(q))
     );
     renderTable(filtered);
-    document.getElementById("invoiceDetails").innerHTML=""; // مسح التفاصيل عند البحث
 });
 
-// عرض تفاصيل الفاتورة
-function showDetails(inv){
-    if(!inv.items || inv.items.length===0){
-        document.getElementById("invoiceDetails").innerHTML="<p class='detailsHeader'>لا توجد تفاصيل لهذه الفاتورة</p>";
-        return;
-    }
+// عرض نافذة الفاتورة
+function showModal(inv){
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalBody = document.getElementById("modalBody");
 
     let html = `<p class='detailsHeader'>تفاصيل الفاتورة رقم ${inv.invoiceNo} للعميل ${inv.customer}</p>`;
-    html += `<table class='detailsTable'>
-    <thead>
-        <tr>
-            <th>كود الصنف</th>
-            <th>اسم الصنف</th>
-            <th>الكمية</th>
-            <th>السعر</th>
-            <th>الإجمالي</th>
-        </tr>
-    </thead>
-    <tbody>`;
+    
+    if(!inv.items || inv.items.length===0){
+        html += "<p>لا توجد تفاصيل لهذه الفاتورة</p>";
+    } else {
+        html += `<table class='detailsTable'>
+        <thead>
+            <tr>
+                <th>كود الصنف</th>
+                <th>اسم الصنف</th>
+                <th>الكمية</th>
+                <th>السعر</th>
+                <th>الإجمالي</th>
+            </tr>
+        </thead>
+        <tbody>`;
+        inv.items.forEach(item=>{
+            html += `<tr>
+            <td>${item.code||"-"}</td>
+            <td>${item.name||"-"}</td>
+            <td>${item.qty||0}</td>
+            <td>${item.price||0.00}</td>
+            <td>${item.total||0.00}</td>
+            </tr>`;
+        });
+        html += "</tbody></table>";
+    }
 
-    inv.items.forEach(item=>{
-        html += `<tr>
-        <td>${item.code||"-"}</td>
-        <td>${item.name||"-"}</td>
-        <td>${item.qty||0}</td>
-        <td>${item.price||0.00}</td>
-        <td>${item.total||0.00}</td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    document.getElementById("invoiceDetails").innerHTML = html;
+    modalBody.innerHTML = html;
+    modalOverlay.style.display = "block";
 }
+
+// إغلاق النافذة
+document.getElementById("closeModal").addEventListener("click",()=>{
+    document.getElementById("modalOverlay").style.display="none";
+});
+
+// اغلاق عند الضغط خارج النافذة
+document.getElementById("modalOverlay").addEventListener("click",(e)=>{
+    if(e.target===document.getElementById("modalOverlay")){
+        document.getElementById("modalOverlay").style.display="none";
+    }
+});
 
 // تحميل البيانات عند فتح الصفحة
 window.onload = loadInvoiceData;
