@@ -12,7 +12,12 @@ table{width:95%;margin:20px auto;border-collapse:collapse;background:white;box-s
 th,td{border:1px solid #ddd;padding:10px;text-align:center;}
 th{background:#2196F3;color:white;}
 tr:nth-child(even){background:#f9f9f9;}
-tr:hover{background:#eef6ff;}
+tr:hover{background:#eef6ff;cursor:pointer;}
+.detailsTable{width:90%;margin:10px auto 30px auto;border-collapse:collapse;}
+.detailsTable th, .detailsTable td{border:1px solid #ccc;padding:8px;text-align:center;}
+.detailsTable th{background:#2196F3;color:white;}
+.detailsTable tr:nth-child(even){background:#f0f0f0;}
+.detailsHeader{width:95%;margin:10px auto;font-weight:bold;color:#333;}
 </style>
 </head>
 <body>
@@ -33,6 +38,8 @@ tr:hover{background:#eef6ff;}
 </thead>
 <tbody></tbody>
 </table>
+
+<div id="invoiceDetails"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 <script>
@@ -90,11 +97,12 @@ function renderTable(data){
         <td>${inv.payment||"-"}</td>
         <td>${inv.date||"-"}</td>
         `;
+        row.addEventListener('click',()=>showDetails(inv));
         tbody.appendChild(row);
     });
 }
 
-// رسالة عند عدم وجود بيانات
+// عرض رسالة عند عدم وجود بيانات
 function showEmpty(msg){
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = `<tr><td colspan="7">${msg}</td></tr>`;
@@ -108,7 +116,42 @@ document.getElementById("searchBox").addEventListener("input", function(){
         (inv.invoiceNo && inv.invoiceNo.toLowerCase().includes(q))
     );
     renderTable(filtered);
+    document.getElementById("invoiceDetails").innerHTML=""; // مسح التفاصيل عند البحث
 });
+
+// عرض تفاصيل الفاتورة
+function showDetails(inv){
+    if(!inv.items || inv.items.length===0){
+        document.getElementById("invoiceDetails").innerHTML="<p class='detailsHeader'>لا توجد تفاصيل لهذه الفاتورة</p>";
+        return;
+    }
+
+    let html = `<p class='detailsHeader'>تفاصيل الفاتورة رقم ${inv.invoiceNo} للعميل ${inv.customer}</p>`;
+    html += `<table class='detailsTable'>
+    <thead>
+        <tr>
+            <th>كود الصنف</th>
+            <th>اسم الصنف</th>
+            <th>الكمية</th>
+            <th>السعر</th>
+            <th>الإجمالي</th>
+        </tr>
+    </thead>
+    <tbody>`;
+
+    inv.items.forEach(item=>{
+        html += `<tr>
+        <td>${item.code||"-"}</td>
+        <td>${item.name||"-"}</td>
+        <td>${item.qty||0}</td>
+        <td>${item.price||0.00}</td>
+        <td>${item.total||0.00}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById("invoiceDetails").innerHTML = html;
+}
 
 // تحميل البيانات عند فتح الصفحة
 window.onload = loadInvoiceData;
