@@ -24,7 +24,6 @@
             padding: 0;
         }
 
-        /* الهيدر المودرن */
         header {
             background: var(--brand-dark-slate);
             color: white;
@@ -42,7 +41,6 @@
             padding: 0 15px;
         }
 
-        /* كارت معلومات الفاتورة الرئيسي */
         .invoice-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -65,7 +63,6 @@
             gap: 8px;
         }
 
-        /* شبكة البيانات الموزعة */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -90,7 +87,6 @@
             font-weight: bold;
         }
 
-        /* جدول العناصر والمبيعات */
         .table-responsive {
             background: var(--card-bg);
             border-radius: 12px;
@@ -123,13 +119,11 @@
         }
 
         tr:nth-child(even) {
-            background-color: #fsfafc;
+            background-color: #f8fafc;
         }
 
         .text-center { text-align: center; }
-        .text-left { text-align: left; }
 
-        /* منطقة الإجمالي النهائي السفلي */
         .invoice-summary {
             display: flex;
             justify-content: flex-end;
@@ -147,7 +141,6 @@
             margin-right: 10px;
         }
 
-        /* شاشة الانتظار والرسائل */
         .status-message {
             text-align: center;
             padding: 40px;
@@ -189,14 +182,12 @@
 </div>
 
 <script>
-// رابط السيرفر السحابي الخاص بك (Apps Script API Web App)
-// ملاحظة: تأكد أن هذا الرابط يطابق تماماً الرابط الموجود بكود الـ C#
+// رابط السيرفر الفعلي المباشر الخاص بك
 const CloudServerUrl = "https://script.google.com/macros/s/AKfycbx4ezTTarc4aVuQ1VR6dxQTMRGgJaaJ1OPGPxCiRGMYzPB3MKikKA7HuJ_vjzxkOu6h3Q/exec";
 
-// دالة لجلب الفاتورة من السيرفر عند تحميل الصفحة
 async function loadInvoiceData() {
     const urlParams = new URLSearchParams(window.location.search);
-    const invoiceId = urlParams.get('invoiceId'); // قراءة رقم الفاتورة من الرابط المباشر الجديد
+    const invoiceId = urlParams.get('invoiceId'); 
 
     const contentDiv = document.getElementById("mainContent");
 
@@ -206,23 +197,27 @@ async function loadInvoiceData() {
     }
 
     try {
-        // الاتصال بالسيرفر وجلب بيانات الفاتورة المحددة عبر الـ ID
-        // نقوم بإرسال طلب الـ GET للسيرفر مع تمريير رقم الفاتورة كـ Parameter
+        // طلب الـ GET للسيرفر لجلب الفاتورة المحددة
         const response = await fetch(`${CloudServerUrl}?invoiceId=${encodeURIComponent(invoiceId)}`);
         
         if (!response.ok) {
             throw new Error("فشل الاتصال بالسيرفر السحابي");
         }
 
-        const result = await response.json();
+        let result = await response.json();
 
-        // التحقق من وجود بيانات فعلية راجعة للفاتورة
-        if (!result || result.status === "not_found" || !result.invoiceNo) {
-            contentDiv.innerHTML = `<div class="status-message" style="color: #ea580c;">📋 الفاتورة رقم (${invoiceId}) غير مسجلة حالياً على السيرفر السحابي أو تم حذفها.</div>`;
+        // معالجة هامة: إذا كانت البيانات قادمة من السيرفر المطور كنص، نقوم بفكها
+        if (typeof result === "string") {
+            result = JSON.parse(result);
+        }
+
+        // التحقق من صحة الفاتورة المسترجعة وفقاً للأسماء البرمجية الجديدة والقديمة
+        if (!result || result.status === "not_found" || (!result.invoiceNo && !result.InvoiceNo)) {
+            contentDiv.innerHTML = `<div class="status-message" style="color: #ea580c;">📋 الفاتورة رقم (${invoiceId}) غير مسجلة حالياً على السيرفر السحابي أو انتهت صلاحية تخزينها المؤقت.</div>`;
             return;
         }
 
-        // رسم واجهة الفاتورة الفلات الاحترافية للمستخدم بالبيانات المسترجعة
+        // رسم الواجهة بالبيانات الصحيحة
         renderInvoice(result);
 
     } catch (err) {
@@ -231,38 +226,46 @@ async function loadInvoiceData() {
     }
 }
 
-// دالة لبناء واجهة الفاتورة المودرن بالكامل
 function renderInvoice(inv) {
     const contentDiv = document.getElementById("mainContent");
     
-    // بناء رأس الفاتورة والكروت الإحصائية للمعلومات الأساسية
+    // دعم القراءة الذكية للمصطلحات (سواء أرسلت بالحرف الصغير أو الكبير من السي شارب)
+    const invoiceNo = inv.invoiceNo || inv.InvoiceNo || "-";
+    const customerName = inv.customer || inv.customerName || inv.CustomerName || "عميل نقدي";
+    const phone = inv.phone || inv.Phone || "-";
+    const createdAt = inv.date || inv.createdAt || inv.CreatedAt || "-";
+    const paymentMethod = inv.payment || inv.paymentMethod || inv.PaymentMethod || "كاش";
+    const priceMode = inv.priceMode || inv.PriceMode || "قطاعي";
+    const totalAmount = inv.total || inv.totalAmount || inv.TotalAmount || 0;
+    const itemsList = inv.items || inv.Items || [];
+
     let html = `
         <div class="invoice-card">
-            <div class="invoice-header-title">📄 تفاصيل الفاتورة الرسمية العامه</div>
+            <div class="invoice-header-title">📄 تفاصيل الفاتورة الرسمية العامة</div>
             <div class="info-grid">
                 <div class="info-item">
                     <span class="info-label">رقم الفاتورة</span>
-                    <span class="info-value" style="color: var(--brand-blue);">${inv.invoiceNo || "-"}</span>
+                    <span class="info-value" style="color: var(--brand-blue);">${invoiceNo}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">اسم العميل</span>
-                    <span class="info-value">${inv.customer || "عميل نقدي"}</span>
+                    <span class="info-value">${customerName}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">رقم الهاتف</span>
-                    <span class="info-value" dir="ltr">${inv.phone || "-"}</span>
+                    <span class="info-value" dir="ltr">${phone}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">تاريخ الإصدار</span>
-                    <span class="info-value">${inv.date || "-"}</span>
+                    <span class="info-value">${createdAt}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">طريقة الدفع</span>
-                    <span class="info-value">${inv.payment || "كاش"}</span>
+                    <span class="info-value">${paymentMethod}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">نظام الأسعار</span>
-                    <span class="info-value">${inv.priceMode || "قطاعي"}</span>
+                    <span class="info-value">${priceMode}</span>
                 </div>
             </div>
         </div>
@@ -283,16 +286,21 @@ function renderInvoice(inv) {
                     <tbody>
     `;
 
-    // إضافة الأصناف المباعة داخل الجدول
-    if (inv.items && inv.items.length > 0) {
-        inv.items.forEach(item => {
+    if (itemsList.length > 0) {
+        itemsList.forEach(item => {
+            const itemCode = item.code || item.ItemCode || "-";
+            const itemName = item.name || item.ItemName || "-";
+            const qty = item.qty || item.Qty || 0;
+            const price = item.price || item.Price || 0;
+            const total = item.total || item.Total || (qty * price);
+
             html += `
                 <tr>
-                    <td class="text-center" style="color: var(--text-muted); font-weight: 600;">${item.code || "-"}</td>
-                    <td style="font-weight: 600; color: var(--brand-dark-slate);">${item.name || "-"}</td>
-                    <td class="text-center">${item.qty || 0}</td>
-                    <td class="text-center">${parseFloat(item.price).toFixed(2)}</td>
-                    <td class="text-center" style="font-weight: bold; color: var(--brand-dark-slate);">${parseFloat(item.total).toFixed(2)}</td>
+                    <td class="text-center" style="color: var(--text-muted); font-weight: 600;">${itemCode}</td>
+                    <td style="font-weight: 600; color: var(--brand-dark-slate);">${itemName}</td>
+                    <td class="text-center">${qty}</td>
+                    <td class="text-center">${parseFloat(price).toFixed(2)}</td>
+                    <td class="text-center" style="font-weight: bold; color: var(--brand-dark-slate);">${parseFloat(total).toFixed(2)}</td>
                 </tr>
             `;
         });
@@ -307,7 +315,7 @@ function renderInvoice(inv) {
 
             <div class="invoice-summary">
                 <span>إجمالي الفاتورة النهائي: </span>
-                <span class="total-highlight">${parseFloat(inv.total || 0).toFixed(2)} ج.م</span>
+                <span class="total-highlight">${parseFloat(totalAmount).toFixed(2)} ج.م</span>
             </div>
         </div>
     `;
@@ -315,7 +323,6 @@ function renderInvoice(inv) {
     contentDiv.innerHTML = html;
 }
 
-// تشغيل دالة الجلب بمجرد تحميل الصفحة تماماً
 window.onload = loadInvoiceData;
 </script>
 
