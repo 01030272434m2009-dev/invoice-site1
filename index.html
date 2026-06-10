@@ -4,63 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>عرض الفاتورة السحابية الإلكترونية</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
-            --brand-dark-slate: #0f172a;
-            --brand-blue: #2563eb;
-            --brand-emerald: #059669;
-            --brand-bg: #f8fafc;
+            --brand-dark-slate: #0f172a;  /* Slate 900 */
+            --brand-blue: #2563eb;        /* Royal Blue */
+            --brand-blue-light: #eff6ff;
+            --brand-emerald: #059669;     /* Success Green */
+            --brand-bg: #f8fafc;          /* Slate 50 */
             --card-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --text-main: #334155;
-            --text-muted: #64748b;
+            --border-color: #e2e8f0;      /* Slate 200 */
+            --text-main: #334155;         /* Slate 700 */
+            --text-muted: #64748b;        /* Slate 500 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Cairo', sans-serif;
             background-color: var(--brand-bg);
             color: var(--text-main);
-            margin: 0;
-            padding: 0;
+            padding: 0 0 50px 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* أنيميشن لظهور الكروت بشكل سلس */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         header {
             background: var(--brand-dark-slate);
             color: white;
-            padding: 20px;
+            padding: 25px 20px;
             text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            letter-spacing: 0.5px;
+            font-size: 22px;
+            font-weight: 800;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+            border-bottom: 3px solid var(--brand-blue);
         }
 
         .container {
-            max-width: 1000px;
-            margin: 25px auto;
-            padding: 0 15px;
+            max-width: 850px;
+            margin: 35px auto;
+            padding: 0 20px;
         }
 
         .invoice-card {
             background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
             border: 1px solid var(--border-color);
-            padding: 25px;
+            padding: 30px;
             margin-bottom: 25px;
+            position: relative;
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* شريط جمالي علوي للكارت الأول */
+        .invoice-card:first-of-type::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--brand-emerald), var(--brand-blue));
+            border-radius: 20px 20px 0 0;
         }
 
         .invoice-header-title {
             font-size: 18px;
-            font-weight: bold;
-            color: var(--brand-blue);
-            margin-top: 0;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--brand-bg);
-            padding-bottom: 10px;
+            font-weight: 800;
+            color: var(--brand-dark-slate);
+            margin-bottom: 25px;
+            border-bottom: 2px dashed var(--border-color);
+            padding-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+        }
+
+        .invoice-header-title i {
+            color: var(--brand-blue);
         }
 
         .info-grid {
@@ -72,117 +109,228 @@
         .info-item {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
+            background: var(--brand-bg);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.6);
         }
 
         .info-label {
             font-size: 13px;
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .info-value {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--brand-dark-slate);
-            font-weight: bold;
+            font-weight: 800;
         }
 
         .table-responsive {
             background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-radius: 16px;
             border: 1px solid var(--border-color);
             overflow: hidden;
-            margin-top: 25px;
+            margin-top: 15px;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             text-align: right;
         }
 
         th, td {
-            padding: 14px 20px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 16px 20px;
         }
 
         th {
-            background-color: var(--brand-dark-slate);
-            color: white;
+            background-color: #f8fafc;
+            color: var(--brand-dark-slate);
+            font-size: 13px;
+            font-weight: 800;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-main);
             font-size: 14px;
-            font-weight: 600;
         }
 
         tr:last-child td {
             border-bottom: none;
         }
 
-        tr:nth-child(even) {
-            background-color: #f8fafc;
+        tbody tr:nth-child(even) {
+            background-color: #fbfcfe;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f5f9;
         }
 
         .text-center { text-align: center; }
 
         .invoice-summary {
             display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-            padding: 15px 20px;
-            background: #f1f5f9;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--brand-dark-slate);
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding: 18px 25px;
+            background: var(--brand-dark-slate);
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.2);
         }
 
         .total-highlight {
-            color: var(--brand-emerald);
-            margin-right: 10px;
+            color: #22c55e; /* لون أخضر زمردي مضيء مناسب للخلفية الداكنة */
+            font-size: 22px;
+            font-weight: 800;
         }
 
+        /* شاشات جلب البيانات والأخطاء */
         .status-message {
             text-align: center;
-            padding: 40px;
+            padding: 50px 30px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
             border: 1px solid var(--border-color);
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 700;
+            animation: fadeInUp 0.4s ease;
         }
 
         .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
+            border: 4px solid #f1f5f9;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border-left-color: var(--brand-blue);
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px auto;
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto 20px auto;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* أزرار التحكم والطباعة */
+        .actions-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-print {
+            font-family: 'Cairo', sans-serif;
+            background: #ffffff;
+            color: var(--brand-dark-slate);
+            border: 1px solid var(--border-color);
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .btn-print:hover {
+            background: var(--brand-dark-slate);
+            color: white;
+            border-color: var(--brand-dark-slate);
+            transform: translateY(-1px);
+        }
+
+        /* 📱 التجاوب الذكي مع الموبايل وتحويل الجدول لكروت مريحة */
+        @media (max-width: 680px) {
+            body { padding-bottom: 30px; }
+            header { font-size: 18px; padding: 20px 15px; }
+            .container { margin: 15px auto; padding: 0 12px; }
+            .invoice-card { padding: 20px; border-radius: 16px; }
+            .info-grid { grid-template-columns: 1fr; gap: 12px; }
+            
+            table, thead, tbody, th, td, tr { 
+                display: block; 
+            }
+            thead tr { 
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr { 
+                border: 1px solid var(--border-color);
+                border-radius: 14px;
+                margin-bottom: 12px;
+                padding: 10px;
+                background: #ffffff;
+            }
+            td { 
+                border: none;
+                border-bottom: 1px solid #f1f5f9; 
+                position: relative;
+                padding: 10px 6px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left !important;
+            }
+            td:last-child { border-bottom: none; }
+            td::before { 
+                content: attr(data-label);
+                font-weight: 700;
+                color: var(--text-muted);
+                text-align: right;
+            }
+            .invoice-summary {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+                padding: 15px;
+            }
+        }
+
+        /* 🖨️ التنسيق النظيف المخصص للطباعة */
+        @media print {
+            body { background: white; padding: 0; }
+            header, .btn-print, .invoice-card::before { display: none !important; }
+            .invoice-card { box-shadow: none !important; border: 1px solid #000 !important; padding: 15px; margin-bottom: 15px; }
+            .invoice-summary { background: #f1f5f9 !important; color: black !important; box-shadow: none !important; }
+            .total-highlight { color: black !important; }
+            th { background-color: #f1f5f9 !important; color: black !important; border-bottom: 1px solid black !important; }
+            td { border-bottom: 1px solid #eee !important; }
+        }
     </style>
 </head>
 <body>
 
-<header>📒 بـوابة الفواتير الإلكترونية السحابية</header>
+<header><i class="fa-solid fa-cloud-bolt"></i> بـوابة الفواتير الإلكترونية السحابية</header>
 
 <div class="container">
     <div id="mainContent">
         <div class="status-message">
             <div class="spinner"></div>
-            جاري جلب بيانات الفاتورة الرقمية من السيرفر السحابي الآمن...
+            <div>جاري جلب بيانات الفاتورة الرقمية من السيرفر السحابي الآمن...</div>
         </div>
     </div>
 </div>
 
 <script>
-// رابط السيرفر الفعلي المباشر الخاص بك
 const CloudServerUrl = "https://script.google.com/macros/s/AKfycbx4ezTTarc4aVuQ1VR6dxQTMRGgJaaJ1OPGPxCiRGMYzPB3MKikKA7HuJ_vjzxkOu6h3Q/exec";
 
 async function loadInvoiceData() {
@@ -192,12 +340,15 @@ async function loadInvoiceData() {
     const contentDiv = document.getElementById("mainContent");
 
     if (!invoiceId) {
-        contentDiv.innerHTML = `<div class="status-message" style="color: #e11d48;">⚠️ عذراً، لم يتم العثور على معرّف أو رقم الفاتورة المطلوبة بالرابط.</div>`;
+        contentDiv.innerHTML = `
+            <div class="status-message" style="color: #e11d48; border-color: #fecdd3; background: #fff5f5;">
+                <i class="fa-solid fa-circle-exclamation" style="font-size: 34px; margin-bottom: 15px;"></i>
+                <div>عذراً، لم يتم العثور على معرّف أو رقم الفاتورة المطلوبة بالرابط.</div>
+            </div>`;
         return;
     }
 
     try {
-        // طلب الـ GET للسيرفر لجلب الفاتورة المحددة
         const response = await fetch(`${CloudServerUrl}?invoiceId=${encodeURIComponent(invoiceId)}`);
         
         if (!response.ok) {
@@ -206,30 +357,34 @@ async function loadInvoiceData() {
 
         let result = await response.json();
 
-        // معالجة هامة: إذا كانت البيانات قادمة من السيرفر المطور كنص، نقوم بفكها
         if (typeof result === "string") {
             result = JSON.parse(result);
         }
 
-        // التحقق من صحة الفاتورة المسترجعة وفقاً للأسماء البرمجية الجديدة والقديمة
         if (!result || result.status === "not_found" || (!result.invoiceNo && !result.InvoiceNo)) {
-            contentDiv.innerHTML = `<div class="status-message" style="color: #ea580c;">📋 الفاتورة رقم (${invoiceId}) غير مسجلة حالياً على السيرفر السحابي أو انتهت صلاحية تخزينها المؤقت.</div>`;
+            contentDiv.innerHTML = `
+                <div class="status-message" style="color: #ea580c; border-color: #ffedd5; background: #fffbfa;">
+                    <i class="fa-solid fa-folder-open" style="font-size: 34px; margin-bottom: 15px;"></i>
+                    <div>📋 الفاتورة رقم (${invoiceId}) غير مسجلة حالياً على السيرفر السحابي أو انتهت صلاحية تخزينها المؤقت.</div>
+                </div>`;
             return;
         }
 
-        // رسم الواجهة بالبيانات الصحيحة
         renderInvoice(result);
 
     } catch (err) {
         console.error(err);
-        contentDiv.innerHTML = `<div class="status-message" style="color: #e11d48;">❌ حدث خطأ غير متوقع أثناء جلب البيانات من السيرفر المحمي.</div>`;
+        contentDiv.innerHTML = `
+            <div class="status-message" style="color: #e11d48; border-color: #fecdd3; background: #fff5f5;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 34px; margin-bottom: 15px;"></i>
+                <div>❌ حدث خطأ غير متوقع أثناء جلب البيانات من السيرفر المحمي.</div>
+            </div>`;
     }
 }
 
 function renderInvoice(inv) {
     const contentDiv = document.getElementById("mainContent");
     
-    // دعم القراءة الذكية للمصطلحات (سواء أرسلت بالحرف الصغير أو الكبير من السي شارب)
     const invoiceNo = inv.invoiceNo || inv.InvoiceNo || "-";
     const customerName = inv.customer || inv.customerName || inv.CustomerName || "عميل نقدي";
     const phone = inv.phone || inv.Phone || "-";
@@ -241,37 +396,37 @@ function renderInvoice(inv) {
 
     let html = `
         <div class="invoice-card">
-            <div class="invoice-header-title">📄 تفاصيل الفاتورة الرسمية العامة</div>
+            <div class="invoice-header-title"><i class="fa-solid fa-file-invoice"></i> تفاصيل الفاتورة الرسمية العامة</div>
             <div class="info-grid">
                 <div class="info-item">
-                    <span class="info-label">رقم الفاتورة</span>
+                    <span class="info-label"><i class="fa-solid fa-hashtag"></i> رقم الفاتورة</span>
                     <span class="info-value" style="color: var(--brand-blue);">${invoiceNo}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">اسم العميل</span>
+                    <span class="info-label"><i class="fa-solid fa-user"></i> اسم العميل</span>
                     <span class="info-value">${customerName}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">رقم الهاتف</span>
+                    <span class="info-label"><i class="fa-solid fa-phone"></i> رقم الهاتف</span>
                     <span class="info-value" dir="ltr">${phone}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">تاريخ الإصدار</span>
+                    <span class="info-label"><i class="fa-solid fa-calendar-day"></i> تاريخ الإصدار</span>
                     <span class="info-value">${createdAt}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">طريقة الدفع</span>
+                    <span class="info-label"><i class="fa-solid fa-credit-card"></i> طريقة الدفع</span>
                     <span class="info-value">${paymentMethod}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">نظام الأسعار</span>
+                    <span class="info-label"><i class="fa-solid fa-tags"></i> نظام الأسعار</span>
                     <span class="info-value">${priceMode}</span>
                 </div>
             </div>
         </div>
 
-        <div class="invoice-card" style="padding-top: 15px;">
-            <div class="invoice-header-title">📦 الأصناف والمستحضرات المسجلة</div>
+        <div class="invoice-card">
+            <div class="invoice-header-title"><i class="fa-solid fa-cubes"></i> الأصناف والمستحضرات المسجلة</div>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -294,13 +449,14 @@ function renderInvoice(inv) {
             const price = item.price || item.Price || 0;
             const total = item.total || item.Total || (qty * price);
 
+            // تم إسناد داتا ليبل (data-label) ليعمل التجاوب التلقائي للموبايل بشكل صحيح وممتاز
             html += `
                 <tr>
-                    <td class="text-center" style="color: var(--text-muted); font-weight: 600;">${itemCode}</td>
-                    <td style="font-weight: 600; color: var(--brand-dark-slate);">${itemName}</td>
-                    <td class="text-center">${qty}</td>
-                    <td class="text-center">${parseFloat(price).toFixed(2)}</td>
-                    <td class="text-center" style="font-weight: bold; color: var(--brand-dark-slate);">${parseFloat(total).toFixed(2)}</td>
+                    <td data-label="كود الصنف" class="text-center" style="color: var(--text-muted); font-weight: 600;">${itemCode}</td>
+                    <td data-label="اسم المستحضر" style="font-weight: 700; color: var(--brand-dark-slate);">${itemName}</td>
+                    <td data-label="الكمية" class="text-center" style="font-weight: 700;">${qty}</td>
+                    <td data-label="السعر الحالي" class="text-center">${parseFloat(price).toFixed(2)}</td>
+                    <td data-label="الإجمالي الصافي" class="text-center" style="font-weight: bold; color: var(--brand-dark-slate);">${parseFloat(total).toFixed(2)}</td>
                 </tr>
             `;
         });
@@ -314,9 +470,13 @@ function renderInvoice(inv) {
             </div>
 
             <div class="invoice-summary">
-                <span>إجمالي الفاتورة النهائي: </span>
+                <span><i class="fa-solid fa-money-bill-wave" style="margin-left: 5px;"></i> إجمالي الفاتورة النهائي:</span>
                 <span class="total-highlight">${parseFloat(totalAmount).toFixed(2)} ج.م</span>
             </div>
+        </div>
+
+        <div class="actions-wrapper">
+             <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة أو حفظ الفاتورة كـ PDF</button>
         </div>
     `;
 
